@@ -1,11 +1,13 @@
-# Database Agent MCP Server - Phase 1
+# Database Agent MCP Server - Phase 2A
 
-A natural language to SQL query generator with MCP (Model Context Protocol) server capabilities. This is Phase 1 of a planned AI agent that will eventually provide autonomous database interaction capabilities.
+A natural language to SQL query generator with MCP (Model Context Protocol) server capabilities. This is **Phase 2A** of a planned AI agent that will eventually provide autonomous database interaction capabilities.
 
-**Current Phase**: SQL Query Generator  
+**Current Phase**: SQL Query Generator with Basic Schema Integration  
 **Future Vision**: Autonomous Database AI Agent
 
-## 🚀 Features (Phase 1)
+---
+
+## 🚀 Features (Phase 2A)
 
 ### Current Capabilities
 - **Natural Language to SQL**: Convert natural language prompts to SQL queries
@@ -15,8 +17,9 @@ A natural language to SQL query generator with MCP (Model Context Protocol) serv
 - **Health Monitoring**: Built-in health checks and monitoring
 - **Comprehensive Logging**: Detailed logging with configurable levels
 - **Configuration Management**: YAML-based configuration with environment variable overrides
+- **Schema Loading & Caching**: Loads and caches database schema using `schema-graph-builder` (see below)
 
-### Planned Features (Phase 2+)
+### Planned Features (Phase 2B+)
 - **Schema-Aware Generation**: Use database schema for context-aware SQL generation
 - **Query Execution**: Execute generated SQL and return results
 - **Autonomous Decision Making**: Plan and execute multi-step database operations
@@ -24,12 +27,44 @@ A natural language to SQL query generator with MCP (Model Context Protocol) serv
 - **Interactive Refinement**: Ask clarifying questions and refine queries
 - **Relationship Detection**: Automatic foreign key relationship inference
 
+---
+
+## 🧩 Schema Integration (Phase 2A)
+
+### What’s New in Phase 2A?
+- **SchemaManager**: Loads, caches, and provides access to the database schema (tables, relationships, metadata) using the `schema-graph-builder` package.
+- **Schema Context**: Schema is now available for future use in prompt enhancement, validation, and agent reasoning (but not yet used for SQL generation).
+- **Health Checks**: SchemaManager exposes health and summary info for monitoring.
+- **Unit Tests**: Comprehensive tests for schema loading, caching, and health.
+
+### How Schema Integration Works
+- On startup, if enabled in config, the agent loads the schema from your database using `schema-graph-builder`.
+- The schema (tables, columns, relationships) is cached and periodically refreshed.
+- The schema is not yet used to influence SQL generation, but is available for future phases.
+
+### Configuration Example
+Edit `config/llm_config.yaml`:
+```yaml
+schema:
+  enabled: true
+  database_url: "sqlite:///:memory:"
+  refresh_interval: 3600  # seconds
+```
+
+### Requirements
+- `schema-graph-builder` must be installed (see Installation below).
+- The schema config section must be present and enabled.
+
+---
+
 ## 📋 Prerequisites
 
 - Python 3.8+
 - Your existing `llmwrapper` library (installed with `pip install -e ../llmwrapper`)
 - Your existing `schema-graph-builder` library (installed with `pip install -e ../schema-graph-builder`)
 - OpenAI API key (or other LLM provider)
+
+---
 
 ## 🔧 Installation
 
@@ -55,58 +90,87 @@ cp env.example .env
 nano .env
 ```
 
-3. **Configure your LLM provider:**
+3. **Configure your LLM provider and schema integration:**
 ```yaml
 # Edit config/llm_config.yaml
 llm:
   provider: "openai"  # or anthropic, gemini, grok, ollama
   model: "gpt-4"      # Model name for your provider
   api_key: ""         # Will be overridden by OPENAI_API_KEY env var
+
+schema:
+  enabled: true
+  database_url: "sqlite:///:memory:"
+  refresh_interval: 3600
 ```
 
-## 🚀 Quick Start
+---
 
-### 1. Start the Server
+## 🚦 Component Status Table
+
+| Feature                        | Status      |
+|--------------------------------|-------------|
+| Natural language → SQL (LLM)   | ✅ Complete |
+| SchemaManager (load/cache)     | ✅ Complete |
+| Schema context API             | ✅ Complete |
+| Unit tests for schema features | ✅ Complete |
+| Query execution                | ❌ Not yet  |
+| Schema-aware prompt/validation | ❌ Not yet  |
+
+---
+
+## 📝 Log Files & .gitignore
+- All log files (`*.log`, `*.log.*`) and the `logs/` directory are ignored by git (see `.gitignore`).
+- You do not need to manually clean up logs before committing.
+
+---
+
+## 🧪 Testing
 
 ```bash
-# Start with default configuration
-python src/mcp_server.py
+# Run all tests (including schema integration)
+pytest tests/
 
-# Or with custom config
-python src/mcp_server.py --config config/llm_config.yaml --host 0.0.0.0 --port 8000
+# Run with coverage
+pytest tests/ --cov=src --cov-report=html
+
+# Run specific test
+pytest tests/test_database_agent.py -v
 ```
 
-### 2. Test the API
+**All tests are currently passing.**
 
-```bash
-# Health check
-curl http://localhost:8000/health
+---
 
-# Generate SQL query (Phase 1: SQL generation only)
-curl -X POST http://localhost:8000/generate-sql \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Show me all users who made orders in the last month"}'
+## 📁 Project Structure
 
-# Get available tools
-curl http://localhost:8000/tools
+```
+database-agent/
+├── README.md                 # This file
+├── requirements.txt          # Python dependencies (includes schema-graph-builder)
+├── env.example              # Environment variables template
+├── architecture_diagram.md  # System architecture documentation
+├── config/
+│   └── llm_config.yaml      # Configuration file
+├── src/
+│   ├── mcp_server.py        # Main MCP server (FastAPI)
+│   ├── database_agent/
+│   │   ├── agent.py         # Core database agent (Phase 1: SQL generator)
+│   │   ├── llm_integration.py # LLMWrapper integration
+│   │   ├── schema_manager.py # SchemaManager (Phase 2A)
+│   │   └── tools/
+│   │       └── query_tool.py # MCP query tool
+│   └── utils/
+│       ├── config_loader.py # Configuration management
+│       └── logger.py        # Logging setup
+├── tests/
+│   ├── test_database_agent.py # Unit tests (Phase 1)
+│   └── test_schema_manager.py # Unit tests (Phase 2A)
+└── examples/
+    └── basic_usage.py       # Usage example
 ```
 
-### 3. Run the Example
-
-```bash
-# Run the basic usage example
-python examples/basic_usage.py
-```
-
-### 4. What You'll Get (Phase 1)
-
-Currently, the system will:
-- ✅ Convert natural language to SQL queries
-- ✅ Provide explanations of generated queries
-- ✅ Handle errors gracefully
-- ✅ Return structured responses
-
-**Note**: This is Phase 1 - the system generates SQL but doesn't execute it yet. Query execution will be added in Phase 2.
+---
 
 ## 📖 API Reference
 
@@ -142,6 +206,8 @@ Currently, the system will:
 #### `GET /tools`
 - **Description**: Get available MCP tools
 - **Response**: List of available tools with schemas
+
+---
 
 ## 🔧 Configuration
 
@@ -181,50 +247,7 @@ logging:
   file: "logs/database_agent.log"
 ```
 
-## 🧪 Testing
-
-```bash
-# Run all tests
-pytest tests/
-
-# Run with coverage
-pytest tests/ --cov=src --cov-report=html
-
-# Run specific test
-pytest tests/test_database_agent.py -v
-```
-
-## 📁 Project Structure
-
-```
-database-agent/
-├── README.md                 # This file
-├── requirements.txt          # Python dependencies
-├── env.example              # Environment variables template
-├── architecture_diagram.md  # System architecture documentation
-├── config/
-│   └── llm_config.yaml      # Configuration file
-├── src/
-│   ├── mcp_server.py        # Main MCP server (FastAPI)
-│   ├── database_agent/
-│   │   ├── agent.py         # Core database agent (Phase 1: SQL generator)
-│   │   ├── llm_integration.py # LLMWrapper integration
-│   │   ├── true_agent.py    # Future: True AI agent implementation
-│   │   └── tools/
-│   │       └── query_tool.py # MCP query tool
-│   └── utils/
-│       ├── config_loader.py # Configuration management
-│       └── logger.py        # Logging setup
-├── tests/
-│   └── test_database_agent.py # Unit tests
-└── examples/
-    └── basic_usage.py       # Usage example
-```
-
-### Component Status
-- **✅ Production Ready**: MCP server, LLM integration, basic agent
-- **🔄 In Development**: Schema integration, query execution
-- **📋 Planned**: Memory system, planning engine, autonomous capabilities
+---
 
 ## 🔍 Troubleshooting
 
@@ -266,6 +289,8 @@ Logs are written to:
 
 Check logs for detailed error information.
 
+---
+
 ## 🎯 Current Limitations (Phase 1)
 
 - **No Query Execution**: Generated SQL is not executed against databases
@@ -275,6 +300,8 @@ Check logs for detailed error information.
 - **No Interactive Refinement**: Cannot ask clarifying questions
 
 These limitations will be addressed in future phases.
+
+---
 
 ## 🚀 Development Roadmap
 
@@ -304,6 +331,8 @@ These limitations will be addressed in future phases.
 - 🔄 **Proactive Suggestions**: Suggest optimizations and insights
 - 🔄 **Natural Conversation**: Maintain context across multiple interactions
 
+---
+
 ## 🧩 Schema Integration (Phase 2A)
 
 Schema integration allows the agent to load and cache your actual database schema using the `schema-graph-builder` library. This enables future schema-aware SQL generation and validation.
@@ -332,6 +361,8 @@ You must install `schema-graph-builder` in development mode:
 pip install -e ../schema-graph-builder
 ```
 
+---
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -339,6 +370,8 @@ pip install -e ../schema-graph-builder
 3. Make your changes
 4. Add tests
 5. Submit a pull request
+
+---
 
 ## 📄 License
 
