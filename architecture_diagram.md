@@ -98,6 +98,8 @@ graph TB
 
 ## Detailed Component Architecture
 
+> **Note:** As of Phase 2A, the `SchemaManager` class is implemented for schema loading and caching using `schema-graph-builder`, but is not yet integrated into the main agent flow for schema-aware SQL generation.
+
 ### Phase 1 Implementation Status
 - **✅ Implemented**: MCP Server, LLM Integration, Basic Query Tool
 - **🔄 Planned**: Schema Graph Engine, Query Execution, Result Processing

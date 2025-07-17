@@ -304,6 +304,34 @@ These limitations will be addressed in future phases.
 - 🔄 **Proactive Suggestions**: Suggest optimizations and insights
 - 🔄 **Natural Conversation**: Maintain context across multiple interactions
 
+## 🧩 Schema Integration (Phase 2A)
+
+Schema integration allows the agent to load and cache your actual database schema using the `schema-graph-builder` library. This enables future schema-aware SQL generation and validation.
+
+### What it does
+- Loads tables, columns, and relationships from your database
+- Caches schema for fast access
+- Provides schema context for future LLM-based SQL generation
+
+### How to enable
+1. Install `schema-graph-builder` (see below)
+2. Add a `schema` section to your `config/llm_config.yaml`:
+
+```yaml
+schema:
+  enabled: true
+  database_url: "postgresql://user:pass@localhost/dbname"
+  refresh_interval: 3600  # seconds
+```
+
+3. The agent will automatically load and cache your schema if enabled.
+
+### Dependency
+You must install `schema-graph-builder` in development mode:
+```bash
+pip install -e ../schema-graph-builder
+```
+
 ## 🤝 Contributing
 
 1. Fork the repository

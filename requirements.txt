@@ -23,3 +23,4 @@ mypy>=1.7.0
 # Note: llmwrapper and schema-graph-builder should be installed with:
 # pip install -e ../llmwrapper
 # pip install -e ../schema-graph-builder 
+schema-graph-builder>=0.1.0 
